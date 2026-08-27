@@ -15,15 +15,15 @@
 <!-- Replace these paths with your actual image paths -->
 
 <p align="center">
-  <img src="images/screenshot 1.png" width="100%" alt="Main Dashboard">
+  <img src="src/images/Screenshot 1.png" width="100%" alt="Main Dashboard">
 </p>
 
 <p align="center">
-  <img src="images/screenshot 2.png" width="100%" alt="Outlier Detection Visualization">
+  <img src="src/images/Screenshot 2.png" width="100%" alt="Outlier Detection Visualization">
 </p>
 
 <p align="center">
-  <img src="images/screenshot 3.png" width="100%" alt="Research Guide">
+  <img src="src/images/Screenshot 3.png" width="100%" alt="Research Guide">
 </p>
 
 ---
@@ -121,3 +121,13 @@ The Interquartile Range is calculated using:
 
 ```text
 IQR = Q3 - Q1
+
+---
+
+## 📄 Project Documentation & Research Report
+
+For a detailed explanation of the research background, statistical methodology, outlier treatment strategies, and project analysis, please refer to the complete project report.
+
+👉 **[View the Full Project Documentation & Research Report](https://drive.google.com/file/d/1ekQyh6ZzVnuXJ6Xbolqyxb2OOSq3-cjs/view?usp=drive_link)**
+
+---
