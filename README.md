@@ -121,13 +121,10 @@ The Interquartile Range is calculated using:
 
 ```text
 IQR = Q3 - Q1
-
----
+```
 
 ## 📄 Project Documentation & Research Report
 
 For a detailed explanation of the research background, statistical methodology, outlier treatment strategies, and project analysis, please refer to the complete project report.
 
 👉 **[View the Full Project Documentation & Research Report](https://drive.google.com/file/d/1ekQyh6ZzVnuXJ6Xbolqyxb2OOSq3-cjs/view?usp=drive_link)**
-
----
