@@ -1,13 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from stats_engine import (
-    detect_iqr_outliers, 
-    detect_zscore_outliers, 
-    treat_outliers, 
-    get_all_columns_summary, 
-    treat_all_numeric_columns
-)
+from stats_engine import StatisticalDetector
 
 # Page Configuration
 st.set_page_config(
@@ -42,7 +36,7 @@ with tab_practical:
             st.sidebar.error(f"Error reading file: {e}")
     else:
         try:
-            df = pd.read_csv("heart.csv")
+            df = pd.read_csv("data/heart.csv")
             st.sidebar.info("Default Active: Heart Disease Dataset")
         except:
             st.sidebar.warning("Please upload a CSV dataset to begin.")
@@ -61,11 +55,17 @@ with tab_practical:
             if selected_col:
                 st.markdown(f"#### Real-Time Analysis for Feature: `{selected_col}`")
                 
+                detector = StatisticalDetector(df)
+
                 lower_fence, upper_fence = None, None
                 if detection_method == "IQR Method":
-                    outliers, lower_fence, upper_fence = detect_iqr_outliers(df, selected_col)
+                    result = detector.detect_outliers_iqr(selected_col)
+                    outliers = result["outliers"]
+                    lower_fence = result["lower_fence"]
+                    upper_fence = result["upper_fence"]
                 else:
-                    outliers = detect_zscore_outliers(df, selected_col)
+                    result = detector.detect_outliers_zscore(selected_col)
+                    outliers = result["outliers"]
                     lower_fence = df[selected_col].mean() - 3 * df[selected_col].std()
                     upper_fence = df[selected_col].mean() + 3 * df[selected_col].std()
 
@@ -88,7 +88,24 @@ with tab_practical:
                     st.divider()
                     st.markdown(f"#### Distribution State After Treatment: `{treatment_method}`")
                     
-                    df_treated = treat_outliers(df, selected_col, treatment_method, lower_fence, upper_fence)
+                    if treatment_method == "Trimming (Delete)":
+                        df_treated = detector.trim_outliers(
+                            selected_col,
+                            method="iqr" if detection_method == "IQR Method" else "zscore"
+                        )
+
+                    elif treatment_method == "Winsorization (Capping)":
+                        df_treated = detector.winsorize_outliers(
+                            selected_col,
+                            method="iqr" if detection_method == "IQR Method" else "zscore"
+                        )
+
+                    elif treatment_method == "Imputation (Median)":
+                        df_treated = detector.impute_outliers(
+                            selected_col,
+                            method="iqr" if detection_method == "IQR Method" else "zscore",
+                            strategy="median"
+                        )
                     
                     fig_after = px.box(df_treated, y=selected_col, title=f"Boxplot for {selected_col} (Cleaned Distribution)", color_discrete_sequence=['#059669'])
                     fig_after.update_layout(transition_duration=600)
@@ -116,7 +133,23 @@ with tab_bulk:
         bulk_detection = st.selectbox("Select Batch Detection Algorithm", ["IQR Method", "Z-Score Method"], key="bulk_det")
         
         st.markdown("#### Comprehensive Outliers Summary Matrix")
-        summary_df = get_all_columns_summary(df, bulk_detection)
+
+        detector = StatisticalDetector(df)
+        summary_data = []
+
+        for column in df.select_dtypes(include=['number']).columns:
+            if bulk_detection == "IQR Method":
+                result = detector.detect_outliers_iqr(column)
+            else:
+                result = detector.detect_outliers_zscore(column)
+
+            summary_data.append({
+                "Feature": column,
+                "Outliers": result["count"],
+                "Outlier %": (result["count"] / len(df)) * 100
+            })
+
+        summary_df = pd.DataFrame(summary_data)
         st.dataframe(summary_df, use_container_width=True)
         
         st.divider()
@@ -125,7 +158,31 @@ with tab_bulk:
         
         if st.button("Execute Global Batch Cleaning", type="primary"):
             with st.spinner("Processing dataset matrix... Please wait"):
-                df_fully_cleaned = treat_all_numeric_columns(df, bulk_treatment, bulk_detection)
+                df_fully_cleaned = df.copy()
+
+                for column in df.select_dtypes(include=['number']).columns:
+                    detector = StatisticalDetector(df_fully_cleaned)
+
+                    method = "iqr" if bulk_detection == "IQR Method" else "zscore"
+
+                    if bulk_treatment == "Trimming (Delete)":
+                        df_fully_cleaned = detector.trim_outliers(
+                            column,
+                            method=method
+                        )
+
+                    elif bulk_treatment == "Winsorization (Capping)":
+                        df_fully_cleaned = detector.winsorize_outliers(
+                            column,
+                            method=method
+                        )
+
+                    elif bulk_treatment == "Imputation (Median)":
+                        df_fully_cleaned = detector.impute_outliers(
+                            column,
+                            method=method,
+                            strategy="median"
+                        )
             
             st.balloons()
             st.success(f"Batch processing completed successfully. Original rows: {len(df)} | Cleaned rows: {len(df_fully_cleaned)}")
