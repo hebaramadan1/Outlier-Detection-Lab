@@ -101,7 +101,7 @@ class StatisticalDetector:
 
         mask = (
             (self.df[column] < fences["lower_fence"])
-            or (self.df[column] > fences["upper_fence"])
+            | (self.df[column] > fences["upper_fence"])
         )
 
         outliers = self.df[mask]
@@ -230,7 +230,7 @@ class StatisticalDetector:
 
         For IQR:
         Values below the lower fence or above the upper fence 
-        are replaced by the lower fence.
+        are replaced by the lower fence or upper fence.
 
         For Z-Score:
         Values below mean - threshold * std or above mean + threshold * std
