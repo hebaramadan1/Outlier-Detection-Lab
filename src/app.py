@@ -35,10 +35,16 @@ with tab_practical:
         except Exception as e:
             st.sidebar.error(f"Error reading file: {e}")
     else:
-        try:
-            df = pd.read_csv("data/heart.csv")
-            st.sidebar.info("Default Active: Heart Disease Dataset")
-        except:
+        # محاولة قراءة الملف من المسارات المحتملة تلقائياً
+        for path in ["heart.csv", "src/heart.csv", "../heart.csv", "data/heart.csv", "src/data/heart.csv"]:
+            try:
+                df = pd.read_csv(path)
+                st.sidebar.info("Default Active: Heart Disease Dataset")
+                break
+            except:
+                continue
+        
+        if df is None:
             st.sidebar.warning("Please upload a CSV dataset to begin.")
 
     if df is not None:
